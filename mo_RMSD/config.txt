@@ -1,0 +1,4 @@
+5                        # angle_step
+data                     # data_directory (relative to repository root)  
+4                        # n_processes
+data/SR/cAlaAla          # system_directory (relative to repository root)
