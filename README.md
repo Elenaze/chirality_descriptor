@@ -2,11 +2,11 @@
 
 ![Graph_descriptor](graph_descriptor.png)
 
-This package provides tools for computing a chirality descriptor of molecular structures using a modified Root Mean Square Deviation (mo_RMSD) enriched by atomic environment awareness and graph-based analysis.
+A Python-based tool for performing a chirality evaluation of molecular structures using a modified Root Mean Square Deviation: mirror-optimal RMSD (mo_RMSD) enriched by atomic environment awareness and graph-based analysis.
 
 ## Overview
 
-The mo_RMSD (modified RMSD) chirality descriptor quantifies the degree of chirality in molecular structures by:
+The mo_RMSD (mirror-optimal RMSD) chirality descriptor quantifies the degree of chirality in molecular structures by:
 - Computing the optimal superposition between a molecule and its mirror image
 - Applies graph-based atomic environment analysis to improve sensitivity to molecular topology.
 - Normalizing by molecular diameter to provide scale-independent descriptors
