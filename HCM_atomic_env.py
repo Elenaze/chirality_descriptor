@@ -122,17 +122,6 @@ def rotate_with_eigenvectors(df, eigenvectors):
 def mirror_image(coords):
     return -coords
 
-def rotate(coords, angle_x, angle_y, angle_z):
-    cx, cy, cz = np.cos([angle_x, angle_y, angle_z])
-    sx, sy, sz = np.sin([angle_x, angle_y, angle_z])
-
-    rotation_matrix = np.array([
-        [cz*cx - sz*sx*cy, cz*sx + sz*cx*cy, sz*sy],
-        [-sz*cx - cz*sx*cy, -sz*sx + cz*cx*cy, cz*sy],
-        [sy*sx, -sy*cx, cy]
-    ])
-    
-    return np.dot(coords, rotation_matrix.T)
 
 def create_df_from_atoms(atom_types, coordinates):
     """
@@ -266,7 +255,7 @@ def molecule_diameter(coordinates):
 def compute_rotation_batch_with_env(args):
     """
     Compute RMSD for a batch of rotation angles using atomic environment information.
-    This incorporates the atomic environment sensitivity into the parallelized rotation search.
+    Uses standard Z-Y-X (yaw-pitch-roll) rotation convention.
     """
     original_coords, mirror_coords, atom_neighbor_strings, atom_neighbor_strings_mirror, angle_batch = args
     
@@ -277,9 +266,9 @@ def compute_rotation_batch_with_env(args):
     
     # Convert angles to arrays for vectorized computation
     angles_array = np.array(angle_batch)
-    angle_x_batch = angles_array[:, 0]
-    angle_y_batch = angles_array[:, 1]
-    angle_z_batch = angles_array[:, 2]
+    angle_x_batch = angles_array[:, 0]  # roll
+    angle_y_batch = angles_array[:, 1]  # pitch
+    angle_z_batch = angles_array[:, 2]  # yaw
     
     # Vectorized trigonometric calculations
     cx, cy, cz = np.cos(angle_x_batch), np.cos(angle_y_batch), np.cos(angle_z_batch)
@@ -299,26 +288,27 @@ def compute_rotation_batch_with_env(args):
         sy_sub = sy[i:end_idx]
         sz_sub = sz[i:end_idx]
         
-        # Vectorized rotation matrix computation
+        # Vectorized rotation matrix computation (Z-Y-X)
         n_sub = end_idx - i
         rotation_matrices = np.zeros((n_sub, 3, 3))
         
-        rotation_matrices[:, 0, 0] = cz_sub * cx_sub - sz_sub * sx_sub * cy_sub
-        rotation_matrices[:, 0, 1] = cz_sub * sx_sub + sz_sub * cx_sub * cy_sub
-        rotation_matrices[:, 0, 2] = sz_sub * sy_sub
-        rotation_matrices[:, 1, 0] = -sz_sub * cx_sub - cz_sub * sx_sub * cy_sub
-        rotation_matrices[:, 1, 1] = -sz_sub * sx_sub + cz_sub * cx_sub * cy_sub
-        rotation_matrices[:, 1, 2] = cz_sub * sy_sub
-        rotation_matrices[:, 2, 0] = sy_sub * sx_sub
-        rotation_matrices[:, 2, 1] = -sy_sub * cx_sub
-        rotation_matrices[:, 2, 2] = cy_sub
+        rotation_matrices[:, 0, 0] = cz_sub * cy_sub
+        rotation_matrices[:, 0, 1] = cz_sub * sy_sub * sx_sub - sz_sub * cx_sub
+        rotation_matrices[:, 0, 2] = cz_sub * sy_sub * cx_sub + sz_sub * sx_sub
+        
+        rotation_matrices[:, 1, 0] = sz_sub * cy_sub
+        rotation_matrices[:, 1, 1] = sz_sub * sy_sub * sx_sub + cz_sub * cx_sub
+        rotation_matrices[:, 1, 2] = sz_sub * sy_sub * cx_sub - cz_sub * sx_sub
+        
+        rotation_matrices[:, 2, 0] = -sy_sub
+        rotation_matrices[:, 2, 1] = cy_sub * sx_sub
+        rotation_matrices[:, 2, 2] = cy_sub * cx_sub
         
         # Apply rotations to all coordinates at once
         rotated_coords = np.einsum('ijk,mk->imj', rotation_matrices, mirror_coords)
         
         # Compute RMSD for each rotation in the sub-batch using atomic environment
         for j in range(n_sub):
-            # Use atomic environment-sensitive Hausdorff distance
             current_rmsd = rmsd_minimal_distance_by_type(
                 original_coords, 
                 rotated_coords[j], 
@@ -332,6 +322,7 @@ def compute_rotation_batch_with_env(args):
                 optimal_coords = rotated_coords[j]
     
     return min_rmsd, optimal_rotation, optimal_coords
+
 
 def compute_optimal_rotation_and_rmsd_parallel(original_coords, mirror_coords, atom_neighbor_strings, atom_neighbor_strings_mirror, angle_increment, n_processes=None):
     """
@@ -349,10 +340,10 @@ def compute_optimal_rotation_and_rmsd_parallel(original_coords, mirror_coords, a
     
     # Generate all angle combinations
     all_angles = []
-    for angle_x in angles_360:
-        for angle_y in angles_180:
-            for angle_z in angles_360:
-                all_angles.append((angle_x, angle_y, angle_z))
+    for theta_x in angles_360:  # roll
+        for theta_y in angles_180:  # pitch
+            for theta_z in angles_360:  # yaw
+                all_angles.append((theta_x, theta_y, theta_z))
     
     # Split into larger batches for process-level parallelization
     batch_size = max(1000, len(all_angles) // n_processes)
@@ -412,9 +403,10 @@ def process_single_file_with_atomic_env(geom_path, angle_step, alpha_value, n_pr
             angle_increment=angle_step,
             n_processes=n_processes
         )
-        
-        normalized = min_rmsd / molecule_diameter(MOL_aling_eienvec)
-        return normalized
+
+        # If needed the descriptor can be normalized by molecule diameter
+        # normalized = min_rmsd / molecule_diameter(MOL_aling_eienvec)
+        return min_rmsd
         
     except Exception as e:
         print(f'Error processing {geom_path}: {e}')

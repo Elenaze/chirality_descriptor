@@ -163,6 +163,9 @@ def save_results(system_name, chi_desc, output_dir, angle_step, processing_time,
     # Append to existing CSV or create new one
     if csv_file.exists():
         df_existing = pd.read_csv(csv_file)
+        # Filter out any empty or NA columns before concatenation
+        df_existing = df_existing.dropna(axis=1, how='all')
+        df_new = df_new.dropna(axis=1, how='all')
         df_combined = pd.concat([df_existing, df_new], ignore_index=True)
         df_combined.to_csv(csv_file, index=False)
         print(f"Results appended to: {csv_file}")

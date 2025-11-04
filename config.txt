@@ -1,4 +1,4 @@
 1.25                     # alpha value for atomic environment analysis
 5                       # angle_step (degrees)
 8                        # n_processes
-data     # directory with single .xyz file (relative to repository root)
+data/SR/cAlaAla    # directory with single .xyz file (relative to repository root)
