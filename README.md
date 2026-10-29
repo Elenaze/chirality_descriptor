@@ -2,6 +2,13 @@
 
 ![Graph_descriptor](graph_descriptor.png)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23767624.svg)](https://doi.org/10.5281/zenodo.23767624)
+
+> **Version used in** E. Zerbato, T. Bürgi, A. F. Perez Mellor, *J. Chem. Phys.* **164**, 074302 (2026), [doi:10.1063/5.0320687](https://doi.org/10.1063/5.0320687):
+> release [v1.0](https://github.com/Elenaze/chirality_descriptor/releases/tag/v1.0), archived on Zenodo, [doi:10.5281/zenodo.23767625](https://doi.org/10.5281/zenodo.23767625).
+> Data (DFT output and geometries): [doi:10.5281/zenodo.17416294](https://doi.org/10.5281/zenodo.17416294).
+
+
 A Python-based tool for performing a chirality evaluation of molecular structures using a modified Root Mean Square Deviation: mirror-optimal RMSD (mo_RMSD) enriched by atomic environment awareness and graph-based analysis.
 
 ## Overview
@@ -9,7 +16,7 @@ A Python-based tool for performing a chirality evaluation of molecular structure
 The mo_RMSD (mirror-optimal RMSD) chirality descriptor quantifies the degree of chirality in molecular structures by:
 - Computing the optimal superposition between a molecule and its mirror image
 - Applies graph-based atomic environment analysis to improve sensitivity to molecular topology.
-- Normalizing by molecular diameter to provide scale-independent descriptors
+- Reporting the minimum RMSD in Å (normalization by the molecular diameter implemented, but not applied by default)
 - Employing parallel processing for efficient exploration of rotational space
 
 ## Installation
@@ -43,7 +50,9 @@ pip install -r requirements.txt
 ### 4. **Chirality Descriptor Calculation**
 - Compute environment-sensitive RMSD for each rotation
 - Find minimum RMSD across all rotations
-- Normalize by molecular diameter: `χ = RMSD_min / d_molecule`
+- The descriptor is the minimum RMSD in Å. A normalization by the molecular diameter is implemented in `HCM_atomic_env.py` but not applied by default, as in the article.
+
+
 
 ## Usage
 
@@ -103,6 +112,25 @@ output/
 - Use larger angle steps for initial screening
 - Consider system complexity when setting precision
 
+  ## How to cite
+
+If you use this code, please cite the article and the archived version of the code:
+
+- E. Zerbato, T. Bürgi, and A. F. Perez Mellor, "The role of ring puckering and non-covalent interactions in the conformational chirality of 2,5-diketopiperazines with identical residues: A theoretical study," *J. Chem. Phys.* **164**, 074302 (2026). https://doi.org/10.1063/5.0320687
+- chirality_descriptor v1.0, Zenodo, https://doi.org/10.5281/zenodo.23767625
+
+```bibtex
+@article{zerbato2026role,
+  author  = {Zerbato, Elena and B{\"u}rgi, Thomas and Perez Mellor, Ariel F.},
+  title   = {The role of ring puckering and non-covalent interactions in the conformational chirality of 2,5-diketopiperazines with identical residues: A theoretical study},
+  journal = {J. Chem. Phys.},
+  volume  = {164},
+  pages   = {074302},
+  year    = {2026},
+  doi     = {10.1063/5.0320687}
+}
+```
+
 ## References
 
 - A. B. Buda and K. Mislow, “A hausdorff chirality measure,” Journal of the
@@ -117,4 +145,4 @@ cal structures with multiscale mirror asymmetries,” Chirality 36, e23678
 
 ## License
 
-This software is provided as-is for research purposes.
+MIT License
